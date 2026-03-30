@@ -7,8 +7,8 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'Aero+ Dashboard',
-  description: 'Modern glassmorphism mobile finance dashboard',
+  title: 'Aero+ Air Quality Monitor',
+  description: 'Modern glassmorphism mobile air quality monitoring dashboard',
   generator: 'v0.app',
   icons: {
     icon: [

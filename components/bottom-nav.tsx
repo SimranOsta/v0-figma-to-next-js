@@ -1,29 +1,29 @@
-"use client"
+"use client";
 
-import { Home, BarChart3, CreditCard, User, Wallet } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { Home, Bell, Lightbulb, Shield, User } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface BottomNavProps {
-  activeTab: string
-  onTabChange: (tab: string) => void
+  activeTab: string;
+  onTabChange: (tab: string) => void;
 }
 
 const navItems = [
   { id: "home", icon: Home, label: "Home" },
-  { id: "analytics", icon: BarChart3, label: "Analytics" },
-  { id: "wallet", icon: Wallet, label: "Wallet" },
-  { id: "cards", icon: CreditCard, label: "Cards" },
+  { id: "alerts", icon: Bell, label: "Alerts" },
+  { id: "insights", icon: Lightbulb, label: "Insights" },
+  { id: "privacy", icon: Shield, label: "Privacy" },
   { id: "profile", icon: User, label: "Profile" },
-]
+];
 
 export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50">
-      <div className="mx-auto max-w-md">
-        <div className="mx-4 mb-4 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl">
-          <div className="flex items-center justify-around py-2">
+      <div className="mx-auto max-w-md px-4 pb-4">
+        <div className="rounded-2xl border border-white/50 bg-white/70 backdrop-blur-xl shadow-lg px-2 py-2">
+          <div className="flex items-center justify-around">
             {navItems.map((item) => {
-              const isActive = activeTab === item.id
+              const isActive = activeTab === item.id;
               return (
                 <button
                   key={item.id}
@@ -31,18 +31,18 @@ export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
                   className={cn(
                     "flex flex-col items-center gap-1 rounded-xl px-4 py-2 transition-all duration-300",
                     isActive
-                      ? "bg-gradient-to-r from-indigo-500 to-violet-500 text-white shadow-lg shadow-indigo-500/30"
-                      : "text-white/50 hover:text-white/80"
+                      ? "bg-purple-500 text-white shadow-md"
+                      : "text-gray-400 hover:text-gray-600"
                   )}
                 >
                   <item.icon className="h-5 w-5" />
-                  <span className="text-[10px] font-medium">{item.label}</span>
+                  <span className="text-xs font-medium">{item.label}</span>
                 </button>
-              )
+              );
             })}
           </div>
         </div>
       </div>
     </nav>
-  )
+  );
 }
