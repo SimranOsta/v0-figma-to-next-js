@@ -12,39 +12,40 @@ const data = [
 ];
 
 const pollutantStats = [
-  { label: "CO₂", value: "520", unit: "ppm", color: "bg-cyan-100 text-cyan-600" },
-  { label: "NH₃", value: "62", unit: "ppb", color: "bg-purple-100 text-purple-600" },
-  { label: "NOₓ", value: "48", unit: "ppb", color: "bg-pink-100 text-pink-600" },
+  { label: "CO₂", value: "520", unit: "ppm", color: "bg-cyan-500/20 text-cyan-400" },
+  { label: "NH₃", value: "62", unit: "ppb", color: "bg-cyan-400/20 text-cyan-300" },
+  { label: "NOₓ", value: "48", unit: "ppb", color: "bg-white/10 text-white" },
 ];
 
 export function PollutantChart() {
   return (
     <div className="space-y-4">
       {/* Chart Card */}
-      <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-5 shadow-lg border border-white/50">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">24-Hour Pollutant Trends</h3>
+      <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-5 shadow-lg border border-white/10">
+        <h3 className="text-lg font-semibold text-white mb-4">24-Hour Pollutant Trends</h3>
         
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={data} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
               <XAxis 
                 dataKey="time" 
                 tick={{ fontSize: 12, fill: "#6b7280" }}
-                axisLine={{ stroke: "#e5e7eb" }}
+                axisLine={{ stroke: "rgba(255,255,255,0.1)" }}
               />
               <YAxis 
                 tick={{ fontSize: 12, fill: "#6b7280" }}
-                axisLine={{ stroke: "#e5e7eb" }}
+                axisLine={{ stroke: "rgba(255,255,255,0.1)" }}
                 domain={[0, 600]}
                 ticks={[0, 150, 300, 450, 600]}
               />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: "rgba(255, 255, 255, 0.95)",
+                  backgroundColor: "rgba(0, 0, 0, 0.9)",
                   borderRadius: "12px",
-                  border: "1px solid #e5e7eb",
-                  boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.5)",
+                  color: "#fff"
                 }}
               />
               <Line
@@ -58,17 +59,17 @@ export function PollutantChart() {
               <Line
                 type="monotone"
                 dataKey="nh3"
-                stroke="#f59e0b"
+                stroke="#22d3ee"
                 strokeWidth={3}
-                dot={{ fill: "#f59e0b", strokeWidth: 0, r: 4 }}
+                dot={{ fill: "#22d3ee", strokeWidth: 0, r: 4 }}
                 activeDot={{ r: 6 }}
               />
               <Line
                 type="monotone"
                 dataKey="nox"
-                stroke="#f59e0b"
+                stroke="#ffffff"
                 strokeWidth={3}
-                dot={{ fill: "#f59e0b", strokeWidth: 0, r: 4 }}
+                dot={{ fill: "#ffffff", strokeWidth: 0, r: 4 }}
                 activeDot={{ r: 6 }}
                 strokeDasharray="5 5"
               />
@@ -80,15 +81,15 @@ export function PollutantChart() {
         <div className="flex flex-wrap justify-center gap-4 mt-4">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-cyan-500" />
-            <span className="text-sm text-cyan-600">CO₂ (ppm)</span>
+            <span className="text-sm text-cyan-400">CO₂ (ppm)</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-amber-500" />
-            <span className="text-sm text-amber-600">NH₃ (ppb)</span>
+            <div className="w-3 h-3 rounded-full bg-cyan-400" />
+            <span className="text-sm text-cyan-300">NH₃ (ppb)</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-amber-500 opacity-60" />
-            <span className="text-sm text-amber-600">NOₓ (ppb)</span>
+            <div className="w-3 h-3 rounded-full bg-white" />
+            <span className="text-sm text-white">NOₓ (ppb)</span>
           </div>
         </div>
       </div>
@@ -98,7 +99,7 @@ export function PollutantChart() {
         {pollutantStats.map((stat) => (
           <div
             key={stat.label}
-            className={`rounded-2xl p-4 ${stat.color} bg-opacity-80 backdrop-blur-sm`}
+            className={`rounded-2xl p-4 ${stat.color} backdrop-blur-sm border border-white/10`}
           >
             <p className="text-xs font-medium opacity-80">{stat.label}</p>
             <p className="text-2xl font-bold">{stat.value}</p>

@@ -9,11 +9,17 @@ import { AlertsList } from "@/components/alerts-list";
 import { PollutantChart } from "@/components/pollutant-chart";
 import { SplashScreen } from "@/components/splash-screen";
 import { OnboardingForm, UserData } from "@/components/onboarding-form";
-import { Shield, ChevronRight, LogOut } from "lucide-react";
+import { Shield, ChevronRight, LogOut, MapPin } from "lucide-react";
 
 type AppState = "splash" | "onboarding" | "dashboard";
 
-function AppHeader({ userName }: { userName: string }) {
+interface PrivacySettings {
+  locationTracking: boolean;
+  healthDataSync: boolean;
+  anonymousAnalytics: boolean;
+}
+
+function AppHeader({ userName, location }: { userName: string; location?: string }) {
   const getInitials = (name: string) => {
     const parts = name.split(" ");
     if (parts.length >= 2) {
@@ -25,14 +31,20 @@ function AppHeader({ userName }: { userName: string }) {
   return (
     <header className="pt-12 pb-4 px-5">
       <div className="flex items-center gap-3">
-        <div className="w-12 h-12 rounded-full bg-white/30 backdrop-blur-sm flex items-center justify-center">
-          <span className="text-white font-bold text-lg">A+</span>
+        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-cyan-500/30">
+          <span className="text-black font-bold text-lg">A+</span>
         </div>
         <div className="flex-1">
           <h1 className="text-xl font-bold text-white">Aero+</h1>
-          <p className="text-white/70 text-sm">Welcome back, {userName}</p>
+          <p className="text-gray-500 text-sm">Welcome back, {userName}</p>
+          {location && (
+            <div className="flex items-center gap-1 text-cyan-400 text-xs mt-0.5">
+              <MapPin className="w-3 h-3" />
+              <span>{location}</span>
+            </div>
+          )}
         </div>
-        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-white/40 to-white/20 flex items-center justify-center">
+        <div className="w-10 h-10 rounded-full bg-white/10 border border-white/20 flex items-center justify-center">
           <span className="text-white font-semibold text-sm">{getInitials(userName)}</span>
         </div>
       </div>
@@ -67,50 +79,102 @@ function InsightsTab() {
   );
 }
 
+function ToggleSwitch({ 
+  enabled, 
+  onToggle 
+}: { 
+  enabled: boolean; 
+  onToggle: () => void;
+}) {
+  return (
+    <button
+      onClick={onToggle}
+      className={`w-12 h-7 rounded-full relative transition-colors duration-300 ${
+        enabled ? "bg-cyan-500" : "bg-gray-600"
+      }`}
+    >
+      <div
+        className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow transition-all duration-300 ${
+          enabled ? "right-1" : "left-1"
+        }`}
+      />
+    </button>
+  );
+}
+
 function PrivacyTab() {
+  const [settings, setSettings] = useState<PrivacySettings>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("aero_privacy_settings");
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    }
+    return {
+      locationTracking: true,
+      healthDataSync: true,
+      anonymousAnalytics: false,
+    };
+  });
+
+  const updateSetting = (key: keyof PrivacySettings) => {
+    const newSettings = { ...settings, [key]: !settings[key] };
+    setSettings(newSettings);
+    localStorage.setItem("aero_privacy_settings", JSON.stringify(newSettings));
+  };
+
   return (
     <div className="space-y-4">
-      <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-6 shadow-lg border border-white/50">
+      <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-6 shadow-lg border border-white/10">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
-            <Shield className="w-6 h-6 text-purple-600" />
+          <div className="w-12 h-12 rounded-full bg-cyan-500/20 flex items-center justify-center">
+            <Shield className="w-6 h-6 text-cyan-400" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-gray-800">Privacy Settings</h3>
+            <h3 className="text-lg font-semibold text-white">Privacy Settings</h3>
             <p className="text-sm text-gray-500">Manage your data preferences</p>
           </div>
         </div>
         
         <div className="space-y-4">
-          <div className="flex items-center justify-between p-4 bg-gray-50/80 rounded-2xl">
+          <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/10">
             <div>
-              <p className="font-medium text-gray-800">Location Tracking</p>
+              <p className="font-medium text-white">Location Tracking</p>
               <p className="text-sm text-gray-500">For outdoor AQI data</p>
             </div>
-            <div className="w-12 h-7 bg-purple-500 rounded-full relative cursor-pointer">
-              <div className="absolute right-1 top-1 w-5 h-5 bg-white rounded-full shadow" />
-            </div>
+            <ToggleSwitch 
+              enabled={settings.locationTracking} 
+              onToggle={() => updateSetting("locationTracking")} 
+            />
           </div>
           
-          <div className="flex items-center justify-between p-4 bg-gray-50/80 rounded-2xl">
+          <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/10">
             <div>
-              <p className="font-medium text-gray-800">Health Data Sync</p>
+              <p className="font-medium text-white">Health Data Sync</p>
               <p className="text-sm text-gray-500">Connect with health apps</p>
             </div>
-            <div className="w-12 h-7 bg-purple-500 rounded-full relative cursor-pointer">
-              <div className="absolute right-1 top-1 w-5 h-5 bg-white rounded-full shadow" />
-            </div>
+            <ToggleSwitch 
+              enabled={settings.healthDataSync} 
+              onToggle={() => updateSetting("healthDataSync")} 
+            />
           </div>
           
-          <div className="flex items-center justify-between p-4 bg-gray-50/80 rounded-2xl">
+          <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/10">
             <div>
-              <p className="font-medium text-gray-800">Anonymous Analytics</p>
+              <p className="font-medium text-white">Anonymous Analytics</p>
               <p className="text-sm text-gray-500">Help improve the app</p>
             </div>
-            <div className="w-12 h-7 bg-gray-300 rounded-full relative cursor-pointer">
-              <div className="absolute left-1 top-1 w-5 h-5 bg-white rounded-full shadow" />
-            </div>
+            <ToggleSwitch 
+              enabled={settings.anonymousAnalytics} 
+              onToggle={() => updateSetting("anonymousAnalytics")} 
+            />
           </div>
+        </div>
+
+        <div className="mt-6 p-4 bg-cyan-500/10 rounded-2xl border border-cyan-500/20">
+          <p className="text-sm text-cyan-400">
+            Your data is stored locally on your device. We never share your personal information with third parties.
+          </p>
         </div>
       </div>
     </div>
@@ -136,6 +200,19 @@ To prioritize user trust and data protection, all personal and health-related in
 
 Designed with highly polluted urban centers like Delhi in mind—where AQI levels can shift dramatically within hours—Aero+ empowers individuals to better understand their environment, maintain healthier indoor conditions, and make informed decisions about outdoor exposure. Ultimately, the system promotes environmental awareness, encourages preventive health practices, and supports safer living amidst rising urban pollution.`;
 
+const POPULAR_CITIES = [
+  "Delhi, India",
+  "Mumbai, India",
+  "Bangalore, India",
+  "Chennai, India",
+  "Kolkata, India",
+  "Hyderabad, India",
+  "Pune, India",
+  "Ahmedabad, India",
+  "Jaipur, India",
+  "Lucknow, India",
+];
+
 function ProfileTab({ 
   userData, 
   onLogout,
@@ -149,6 +226,7 @@ function ProfileTab({
   const [showAbout, setShowAbout] = useState(false);
   const [editName, setEditName] = useState(userData.name);
   const [editAge, setEditAge] = useState(userData.age);
+  const [editLocation, setEditLocation] = useState(userData.location || "");
   const [editConditions, setEditConditions] = useState<string[]>(userData.conditions);
 
   const getInitials = (name: string) => {
@@ -188,6 +266,7 @@ function ProfileTab({
     const updatedUser: UserData = {
       name: editName,
       age: editAge,
+      location: editLocation,
       conditions: editConditions.length > 0 ? editConditions : ["none"],
     };
     onUpdateUser(updatedUser);
@@ -197,6 +276,7 @@ function ProfileTab({
   const handleCancelEdit = () => {
     setEditName(userData.name);
     setEditAge(userData.age);
+    setEditLocation(userData.location || "");
     setEditConditions(userData.conditions);
     setIsEditing(false);
   };
@@ -205,36 +285,63 @@ function ProfileTab({
   if (isEditing) {
     return (
       <div className="space-y-4">
-        <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-6 shadow-lg border border-white/50">
-          <h3 className="text-xl font-bold text-gray-800 mb-6">Edit Profile</h3>
+        <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-6 shadow-lg border border-white/10">
+          <h3 className="text-xl font-bold text-white mb-6">Edit Profile</h3>
           
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
+              <label className="block text-sm font-medium text-gray-400 mb-2">Name</label>
               <input
                 type="text"
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-50/80 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-800"
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 text-white placeholder:text-gray-500"
                 placeholder="Your name"
               />
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Age</label>
+              <label className="block text-sm font-medium text-gray-400 mb-2">Age</label>
               <input
                 type="number"
                 value={editAge}
                 onChange={(e) => setEditAge(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-50/80 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-800"
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 text-white placeholder:text-gray-500"
                 placeholder="Your age"
                 min="1"
                 max="120"
               />
             </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-400 mb-2">Location</label>
+              <input
+                type="text"
+                value={editLocation}
+                onChange={(e) => setEditLocation(e.target.value)}
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 text-white placeholder:text-gray-500 mb-3"
+                placeholder="Your city"
+              />
+              <div className="flex flex-wrap gap-2 max-h-24 overflow-y-auto">
+                {POPULAR_CITIES.map((city) => (
+                  <button
+                    key={city}
+                    type="button"
+                    onClick={() => setEditLocation(city)}
+                    className={`px-3 py-1 rounded-full text-xs transition-all ${
+                      editLocation === city
+                        ? "bg-cyan-500 text-black"
+                        : "bg-white/5 text-gray-400 hover:bg-white/10 border border-white/10"
+                    }`}
+                  >
+                    {city}
+                  </button>
+                ))}
+              </div>
+            </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">Health Conditions</label>
+              <label className="block text-sm font-medium text-gray-400 mb-3">Health Conditions</label>
               <div className="grid grid-cols-2 gap-3">
                 {HEALTH_CONDITIONS.map((condition) => {
                   const isSelected = editConditions.includes(condition.id);
@@ -246,9 +353,9 @@ function ProfileTab({
                       className={`p-3 rounded-xl border-2 text-center transition-all ${
                         isSelected
                           ? condition.id === "asthma"
-                            ? "border-red-400 bg-red-50 text-red-600"
-                            : "border-purple-400 bg-purple-50 text-purple-700"
-                          : "border-gray-200 bg-gray-50/80 text-gray-600 hover:border-gray-300"
+                            ? "border-red-500 bg-red-500/10 text-red-400"
+                            : "border-cyan-500 bg-cyan-500/10 text-cyan-400"
+                          : "border-white/10 bg-white/5 text-gray-400 hover:border-white/20"
                       }`}
                     >
                       <span className="font-medium text-sm">{condition.label}</span>
@@ -262,14 +369,14 @@ function ProfileTab({
           <div className="flex gap-3 mt-6">
             <button
               onClick={handleCancelEdit}
-              className="flex-1 py-3 rounded-xl border border-gray-300 text-gray-600 font-medium hover:bg-gray-50 transition-colors"
+              className="flex-1 py-3 rounded-xl border border-white/20 text-gray-400 font-medium hover:bg-white/5 transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={handleSaveProfile}
               disabled={!editName.trim() || !editAge}
-              className="flex-1 py-3 rounded-xl bg-purple-500 text-white font-medium hover:bg-purple-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 py-3 rounded-xl bg-cyan-500 text-black font-medium hover:bg-cyan-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Save Changes
             </button>
@@ -283,26 +390,26 @@ function ProfileTab({
   if (showAbout) {
     return (
       <div className="space-y-4">
-        <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-6 shadow-lg border border-white/50">
+        <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-6 shadow-lg border border-white/10">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center">
-              <span className="text-white font-bold text-lg">A+</span>
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-cyan-500/30">
+              <span className="text-black font-bold text-lg">A+</span>
             </div>
             <div>
-              <h3 className="text-xl font-bold text-gray-800">About Aero+</h3>
+              <h3 className="text-xl font-bold text-white">About Aero+</h3>
               <p className="text-sm text-gray-500">Version 1.0.0</p>
             </div>
           </div>
           
           <div className="prose prose-sm max-w-none">
-            <div className="text-gray-700 text-sm leading-relaxed whitespace-pre-line max-h-96 overflow-y-auto pr-2">
+            <div className="text-gray-400 text-sm leading-relaxed whitespace-pre-line max-h-96 overflow-y-auto pr-2">
               {ABOUT_AERO_TEXT}
             </div>
           </div>
           
           <button
             onClick={() => setShowAbout(false)}
-            className="w-full mt-6 py-3 rounded-xl bg-purple-500 text-white font-medium hover:bg-purple-600 transition-colors"
+            className="w-full mt-6 py-3 rounded-xl bg-cyan-500 text-black font-medium hover:bg-cyan-400 transition-colors"
           >
             Back to Profile
           </button>
@@ -313,20 +420,26 @@ function ProfileTab({
 
   return (
     <div className="space-y-4">
-      <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-6 shadow-lg border border-white/50">
+      <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-6 shadow-lg border border-white/10">
         <div className="flex flex-col items-center">
-          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center mb-4">
-            <span className="text-2xl font-bold text-white">{getInitials(userData.name)}</span>
+          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-cyan-500 to-cyan-400 flex items-center justify-center mb-4 shadow-lg shadow-cyan-500/30">
+            <span className="text-2xl font-bold text-black">{getInitials(userData.name)}</span>
           </div>
-          <h3 className="text-xl font-bold text-gray-800">{userData.name}</h3>
+          <h3 className="text-xl font-bold text-white">{userData.name}</h3>
           <p className="text-gray-500">{userData.age} years old</p>
+          {userData.location && (
+            <div className="flex items-center gap-1 text-cyan-400 text-sm mt-1">
+              <MapPin className="w-4 h-4" />
+              <span>{userData.location}</span>
+            </div>
+          )}
           
           {userData.conditions.length > 0 && !userData.conditions.includes("none") && (
             <div className="flex flex-wrap gap-2 mt-3 justify-center">
               {userData.conditions.map((condition) => (
                 <span
                   key={condition}
-                  className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium"
+                  className="px-3 py-1 bg-cyan-500/20 text-cyan-400 rounded-full text-sm font-medium border border-cyan-500/30"
                 >
                   {getConditionLabel(condition)}
                 </span>
@@ -336,41 +449,41 @@ function ProfileTab({
           
           <div className="flex gap-6 mt-4">
             <div className="text-center">
-              <p className="text-2xl font-bold text-purple-600">1</p>
+              <p className="text-2xl font-bold text-cyan-400">1</p>
               <p className="text-xs text-gray-500">Days Active</p>
             </div>
-            <div className="w-px bg-gray-200" />
+            <div className="w-px bg-white/10" />
             <div className="text-center">
-              <p className="text-2xl font-bold text-green-600">0</p>
+              <p className="text-2xl font-bold text-cyan-400">0</p>
               <p className="text-xs text-gray-500">Alerts Acted</p>
             </div>
           </div>
         </div>
       </div>
       
-      <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-5 shadow-lg border border-white/50">
-        <h4 className="font-semibold text-gray-800 mb-3">Account Settings</h4>
+      <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-5 shadow-lg border border-white/10">
+        <h4 className="font-semibold text-white mb-3">Account Settings</h4>
         <div className="space-y-1">
           <button
             onClick={() => setIsEditing(true)}
-            className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50/80 transition-colors"
+            className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-colors"
           >
-            <span className="text-gray-700">Edit Profile</span>
-            <ChevronRight className="w-4 h-4 text-gray-400" />
+            <span className="text-gray-300">Edit Profile</span>
+            <ChevronRight className="w-4 h-4 text-gray-500" />
           </button>
           <button
             onClick={() => setShowAbout(true)}
-            className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50/80 transition-colors"
+            className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-colors"
           >
-            <span className="text-gray-700">About Aero+</span>
-            <ChevronRight className="w-4 h-4 text-gray-400" />
+            <span className="text-gray-300">About Aero+</span>
+            <ChevronRight className="w-4 h-4 text-gray-500" />
           </button>
         </div>
       </div>
 
       <button
         onClick={onLogout}
-        className="w-full bg-red-50 hover:bg-red-100 text-red-600 font-medium py-4 rounded-2xl flex items-center justify-center gap-2 transition-colors"
+        className="w-full bg-red-500/10 hover:bg-red-500/20 text-red-400 font-medium py-4 rounded-2xl flex items-center justify-center gap-2 transition-colors border border-red-500/20"
       >
         <LogOut className="w-5 h-5" />
         Log Out
@@ -385,12 +498,12 @@ export default function AeroPlusDashboard() {
   const [activeTab, setActiveTab] = useState("home");
 
   useEffect(() => {
-    // Check if user data exists in localStorage
+    // Always show splash screen first, then check for user data
     const savedUser = localStorage.getItem("aero_user");
     if (savedUser) {
       setUserData(JSON.parse(savedUser));
-      setAppState("dashboard");
     }
+    // appState starts as "splash" so splash will always show
   }, []);
 
   const handleSplashComplete = () => {
@@ -446,9 +559,9 @@ export default function AeroPlusDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-500 via-purple-400 to-pink-400">
+    <div className="min-h-screen bg-black">
       <div className="mx-auto max-w-md min-h-screen pb-28">
-        <AppHeader userName={userData?.name || "User"} />
+        <AppHeader userName={userData?.name || "User"} location={userData?.location} />
         <main className="px-4">
           {renderContent()}
         </main>

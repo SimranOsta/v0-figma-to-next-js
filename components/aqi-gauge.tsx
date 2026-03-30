@@ -11,12 +11,12 @@ interface AQIGaugeProps {
 }
 
 function getAQIColor(value: number): string {
-  if (value <= 50) return "#22c55e"; // Good - Green
-  if (value <= 100) return "#f59e0b"; // Moderate - Yellow/Orange
-  if (value <= 150) return "#f97316"; // Unhealthy for Sensitive - Orange
-  if (value <= 200) return "#ef4444"; // Unhealthy - Red
-  if (value <= 300) return "#a855f7"; // Very Unhealthy - Purple
-  return "#7f1d1d"; // Hazardous - Maroon
+  if (value <= 50) return "#06b6d4"; // Good - Cyan
+  if (value <= 100) return "#22d3ee"; // Moderate - Light Cyan
+  if (value <= 150) return "#f59e0b"; // Unhealthy for Sensitive - Amber
+  if (value <= 200) return "#f97316"; // Unhealthy - Orange
+  if (value <= 300) return "#ef4444"; // Very Unhealthy - Red
+  return "#7f1d1d"; // Hazardous - Dark Red
 }
 
 function getAQIStatus(value: number): string {
@@ -29,14 +29,14 @@ function getAQIStatus(value: number): string {
 }
 
 function getStatusColor(value: number): string {
-  if (value <= 50) return "bg-green-100 text-green-600";
-  if (value <= 100) return "bg-yellow-100 text-yellow-600";
-  if (value <= 150) return "bg-orange-100 text-orange-600";
-  if (value <= 200) return "bg-red-100 text-red-600";
-  return "bg-purple-100 text-purple-600";
+  if (value <= 50) return "bg-cyan-500/20 text-cyan-400";
+  if (value <= 100) return "bg-cyan-400/20 text-cyan-300";
+  if (value <= 150) return "bg-amber-500/20 text-amber-400";
+  if (value <= 200) return "bg-orange-500/20 text-orange-400";
+  return "bg-red-500/20 text-red-400";
 }
 
-export function AQIGauge({ value, label, showTrend = true, trendValue = 0, sensorInfo }: AQIGaugeProps) {
+export function AQIGauge({ value, sensorInfo }: AQIGaugeProps) {
   const [animatedValue, setAnimatedValue] = useState(0);
   
   useEffect(() => {
@@ -63,7 +63,7 @@ export function AQIGauge({ value, label, showTrend = true, trendValue = 0, senso
             cy="100"
             r="90"
             fill="none"
-            stroke="#e5e7eb"
+            stroke="rgba(255,255,255,0.1)"
             strokeWidth="12"
             strokeLinecap="round"
             strokeDasharray={`${arcLength} ${circumference}`}
@@ -79,6 +79,7 @@ export function AQIGauge({ value, label, showTrend = true, trendValue = 0, senso
             strokeLinecap="round"
             strokeDasharray={`${progress} ${circumference}`}
             className="transition-all duration-1000 ease-out"
+            style={{ filter: `drop-shadow(0 0 8px ${color})` }}
           />
         </svg>
         
@@ -102,11 +103,11 @@ export function AQIGauge({ value, label, showTrend = true, trendValue = 0, senso
       {/* AQI Scale */}
       <div className="w-full mt-6">
         <div className="flex h-2 rounded-full overflow-hidden">
-          <div className="flex-1 bg-green-500" />
-          <div className="flex-1 bg-yellow-400" />
+          <div className="flex-1 bg-cyan-500" />
+          <div className="flex-1 bg-cyan-400" />
+          <div className="flex-1 bg-amber-500" />
           <div className="flex-1 bg-orange-500" />
           <div className="flex-1 bg-red-500" />
-          <div className="flex-1 bg-purple-500" />
           <div className="flex-1 bg-red-900" />
         </div>
         <div className="flex justify-between mt-1 text-xs text-gray-500">
@@ -121,8 +122,8 @@ export function AQIGauge({ value, label, showTrend = true, trendValue = 0, senso
 
       {/* Sensor info */}
       {sensorInfo && (
-        <div className="flex items-center gap-2 mt-4 text-sm text-gray-600">
-          <span className="w-2 h-2 rounded-full bg-green-500" />
+        <div className="flex items-center gap-2 mt-4 text-sm text-gray-400">
+          <span className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse" />
           <span>{sensorInfo}</span>
         </div>
       )}
