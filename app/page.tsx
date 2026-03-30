@@ -1,24 +1,39 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { BottomNav } from "@/components/bottom-nav";
 import { AQICard } from "@/components/aqi-card";
 import { HealthProfile } from "@/components/health-profile";
 import { CalibrationStatus } from "@/components/calibration-status";
 import { AlertsList } from "@/components/alerts-list";
 import { PollutantChart } from "@/components/pollutant-chart";
-import { Shield, Settings, ChevronRight } from "lucide-react";
+import { SplashScreen } from "@/components/splash-screen";
+import { OnboardingForm, UserData } from "@/components/onboarding-form";
+import { Shield, ChevronRight, LogOut } from "lucide-react";
 
-function AppHeader() {
+type AppState = "splash" | "onboarding" | "dashboard";
+
+function AppHeader({ userName }: { userName: string }) {
+  const getInitials = (name: string) => {
+    const parts = name.split(" ");
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.slice(0, 2).toUpperCase();
+  };
+
   return (
     <header className="pt-12 pb-4 px-5">
       <div className="flex items-center gap-3">
         <div className="w-12 h-12 rounded-full bg-white/30 backdrop-blur-sm flex items-center justify-center">
           <span className="text-white font-bold text-lg">A+</span>
         </div>
-        <div>
+        <div className="flex-1">
           <h1 className="text-xl font-bold text-white">Aero+</h1>
-          <p className="text-white/70 text-sm">Air Quality Monitor</p>
+          <p className="text-white/70 text-sm">Welcome back, {userName}</p>
+        </div>
+        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-white/40 to-white/20 flex items-center justify-center">
+          <span className="text-white font-semibold text-sm">{getInitials(userName)}</span>
         </div>
       </div>
     </header>
@@ -102,25 +117,58 @@ function PrivacyTab() {
   );
 }
 
-function ProfileTab() {
+function ProfileTab({ userData, onLogout }: { userData: UserData; onLogout: () => void }) {
+  const getInitials = (name: string) => {
+    const parts = name.split(" ");
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.slice(0, 2).toUpperCase();
+  };
+
+  const getConditionLabel = (id: string) => {
+    const labels: Record<string, string> = {
+      asthma: "Asthma",
+      allergies: "Allergies",
+      heart: "Heart Condition",
+      copd: "COPD",
+      pregnancy: "Pregnancy",
+      none: "None",
+    };
+    return labels[id] || id;
+  };
+
   return (
     <div className="space-y-4">
       <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-6 shadow-lg border border-white/50">
         <div className="flex flex-col items-center">
           <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center mb-4">
-            <span className="text-2xl font-bold text-white">JD</span>
+            <span className="text-2xl font-bold text-white">{getInitials(userData.name)}</span>
           </div>
-          <h3 className="text-xl font-bold text-gray-800">John Doe</h3>
-          <p className="text-gray-500">john.doe@email.com</p>
+          <h3 className="text-xl font-bold text-gray-800">{userData.name}</h3>
+          <p className="text-gray-500">{userData.age} years old</p>
+          
+          {userData.conditions.length > 0 && !userData.conditions.includes("none") && (
+            <div className="flex flex-wrap gap-2 mt-3 justify-center">
+              {userData.conditions.map((condition) => (
+                <span
+                  key={condition}
+                  className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium"
+                >
+                  {getConditionLabel(condition)}
+                </span>
+              ))}
+            </div>
+          )}
           
           <div className="flex gap-6 mt-4">
             <div className="text-center">
-              <p className="text-2xl font-bold text-purple-600">142</p>
+              <p className="text-2xl font-bold text-purple-600">1</p>
               <p className="text-xs text-gray-500">Days Active</p>
             </div>
             <div className="w-px bg-gray-200" />
             <div className="text-center">
-              <p className="text-2xl font-bold text-green-600">23</p>
+              <p className="text-2xl font-bold text-green-600">0</p>
               <p className="text-xs text-gray-500">Alerts Acted</p>
             </div>
           </div>
@@ -141,12 +189,53 @@ function ProfileTab() {
           ))}
         </div>
       </div>
+
+      <button
+        onClick={onLogout}
+        className="w-full bg-red-50 hover:bg-red-100 text-red-600 font-medium py-4 rounded-2xl flex items-center justify-center gap-2 transition-colors"
+      >
+        <LogOut className="w-5 h-5" />
+        Log Out
+      </button>
     </div>
   );
 }
 
 export default function AeroPlusDashboard() {
+  const [appState, setAppState] = useState<AppState>("splash");
+  const [userData, setUserData] = useState<UserData | null>(null);
   const [activeTab, setActiveTab] = useState("home");
+
+  useEffect(() => {
+    // Check if user data exists in localStorage
+    const savedUser = localStorage.getItem("aero_user");
+    if (savedUser) {
+      setUserData(JSON.parse(savedUser));
+      setAppState("dashboard");
+    }
+  }, []);
+
+  const handleSplashComplete = () => {
+    const savedUser = localStorage.getItem("aero_user");
+    if (savedUser) {
+      setUserData(JSON.parse(savedUser));
+      setAppState("dashboard");
+    } else {
+      setAppState("onboarding");
+    }
+  };
+
+  const handleOnboardingComplete = (data: UserData) => {
+    localStorage.setItem("aero_user", JSON.stringify(data));
+    setUserData(data);
+    setAppState("dashboard");
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("aero_user");
+    setUserData(null);
+    setAppState("onboarding");
+  };
 
   const renderContent = () => {
     switch (activeTab) {
@@ -159,16 +248,24 @@ export default function AeroPlusDashboard() {
       case "privacy":
         return <PrivacyTab />;
       case "profile":
-        return <ProfileTab />;
+        return userData ? <ProfileTab userData={userData} onLogout={handleLogout} /> : null;
       default:
         return <HomeTab />;
     }
   };
 
+  if (appState === "splash") {
+    return <SplashScreen onComplete={handleSplashComplete} />;
+  }
+
+  if (appState === "onboarding") {
+    return <OnboardingForm onComplete={handleOnboardingComplete} />;
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-500 via-purple-400 to-pink-400">
       <div className="mx-auto max-w-md min-h-screen pb-28">
-        <AppHeader />
+        <AppHeader userName={userData?.name || "User"} />
         <main className="px-4">
           {renderContent()}
         </main>
